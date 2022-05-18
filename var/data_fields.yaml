@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+# --------------------------------------------------------------------------------- #
+# MUSCAT data reduction
+# data_fields.yaml
+# Sweep and time streams data fields.
+#
+# Marcial Becerril, @ 15 January 2022
+# Latest Revision: 15 Jan 2022, 18:20 GMT-6
+#
+# For all kind of problems, requests of enhancements and bug reports, please
+# write to me at:
+#
+# mbecerrilt92@gmail.com
+# mbecerrilt@inaoep.mx
+#
+# --------------------------------------------------------------------------------- #
+
+# General parameters
+gral: {
+  i: INDEX,
+  gpio: gpio_reg,
+  bb: bbfreqs,
+  tones: f0s,
+  lo: lofreq,
+  names: tonenames,
+  pps: pps_timestamp,
+  fine_time: fine_timestamp,
+  py_time: python_timestamp,
+  pack_cnt: packet_count,
+  pack_info: packet_info_reg,
+  rch_check: roach_checksum,
+  m1: 'CRYOLOG_MC_1_Built_In',
+  m2: 'CRYOLOG_MC_2_Cald' }
+
+# Sweeps
+sweep: {
+  f: f_s21,
+  s21: sweep,
+  bb: bb_freqs,
+  lo: lo_freqs,
+  i_cal: calparam.i0,
+  q_cal: calparam.q0,
+  f_cal: calparam.f0s,
+  s21_cal: caldata,
+  meta_type: metadata.type,
+  didf0: calparam.didf0,
+  dqdf0: calparam.dqdf0,
+  didq2: calparam.didq2,
+  file: metadata.raw_sweep_filename }
+
+# Time Streams
+time-stream: {
+  I: I,
+  Q: Q,
+  z: z,
+  df: df,
+  angz: angz,
+  magz: magz,
+  didf: didf_sumdidq2,
+  dqdf: dqdf_sumdidq2,
+  i0_didf: i0_didf_sumdidq2,
+  q0_dqdf: q0_dqdf_sumdidq2 }

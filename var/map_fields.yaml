@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+# --------------------------------------------------------------------------------- #
+# MUSCAT data reduction
+# map_fields.yaml
+# Map data fields.
+#
+# Marcial Becerril, @ 17 January 2022
+# Latest Revision: 17 Jan 2022, 01:58 GMT-6
+#
+# For all kind of problems, requests of enhancements and bug reports, please
+# write to me at:
+#
+# mbecerrilt92@gmail.com
+# mbecerrilt@inaoep.mx
+#
+# --------------------------------------------------------------------------------- #
+
+# LMT telescope parameters
+lmt: {
+  name: Large Millimeter Telescope,
+  diameter: 50,         # [m]
+  # Instruments
+  inst:{
+    muscat:{
+      wavelength: 1.1e-3,  # [m]
+      bandwidth: 50e9,     # [Hz]
+      num_pix: 1458,
+      sample: 488.28125    # [Hz]
+    }
+}
+}
+

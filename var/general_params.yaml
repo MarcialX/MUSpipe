@@ -1,0 +1,25 @@
+# -*- coding: utf-8 -*-
+# --------------------------------------------------------------------------------- #
+# MUSCAT data reduction
+# general_params.yaml
+# Definition of general parameters
+#
+# Marcial Becerril, @ 21 April 2022
+# Latest Revision: 21 Apr 2022, 20:50 GMT-6
+#
+# For all kind of problems, requests of enhancements and bug reports, please
+# write to me at:
+#
+# mbecerrilt92@gmail.com
+# mbecerrilt@inaoep.mx
+#
+# --------------------------------------------------------------------------------- #
+
+# General parameters
+telescope: lmt
+camera: muscat
+
+# Paths
+# Folder where the analysis is stored
+analysis_path: .
+logs_path: /logs/analysis.log

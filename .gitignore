@@ -1,0 +1,8 @@
+Backup-210422/
+processing/
+__pycache__/
+misc/__pycache__
+misc/__var__
+
+*.npy
+*.png
