@@ -3,6 +3,7 @@ processing/
 __pycache__/
 misc/__pycache__
 misc/__var__
+data/
 
 *.npy
 *.png

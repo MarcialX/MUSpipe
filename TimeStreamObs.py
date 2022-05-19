@@ -125,7 +125,7 @@ class TimeStreamObs(object):
                     List of KIDs to read
             ----------
         """
-        meta = b'sweep' 
+        meta = b'sweep'
         meta_str = meta.decode('utf-8')
 
         # Validate KIDs list
@@ -175,7 +175,7 @@ class TimeStreamObs(object):
         """
 
         # As time stream metadata is empty
-        meta = b'' 
+        meta = b''
         meta_str = 'time-stream'
 
         # Validate KIDs list
@@ -197,7 +197,6 @@ class TimeStreamObs(object):
         return stream_data
 
 
-    @timeout(5)
     def fit_s21(self, s21, method='nonlinear', **kwargs):
         """
             Fit S21 paramter of resonators
@@ -223,9 +222,11 @@ class TimeStreamObs(object):
 
         # Create directory
         kid_params = {}
-        
+
         # Define the constant model one
         one = lmfit.Model(constant_model)
+
+        prefix = "mus0_"
 
         for kid in s21.keys():
 
@@ -234,50 +235,72 @@ class TimeStreamObs(object):
             msg('======================================', 'info')
 
             if b'f' in list(s21[kid].keys()) and b'sweep' in list(s21[kid].keys()):
-                
+
                 # Extract frequency and S21 params
                 freq_kid = s21[kid][b'f']
                 s21_kid = s21[kid][b'sweep']
 
-                # Create the model
-                model_res = ResonatorModel(method)
+                # Check if data is adjustable
+                # 1. Check if the peaks are positive
+                # delta_height = np.max(-1*np.abs(s21_kid)) - np.min(-1*np.abs(s21_kid))
+                # peaks, _ = find_peaks(-1*np.abs(s21_kid), distance=len(freq_kid)/4, height=delta_height/3+np.min(-1*np.abs(s21_kid)) )
 
-                f0_guess = int(len(s21_kid)/2)+1
-                pars = model_res.guess(freq_kid, s21_kid, f0_guess, **kwargs)
+                # if len(peaks) == 1:
+                #     if np.mean(np.abs(s21_kid)) >  np.abs(s21_kid)[peaks[0]]:
 
-                prefix = "mus0_"
+                try:
+                    result = self._perform_fit(method, freq_kid, s21_kid, **kwargs)
 
-                # Getting the fit
-                result = model_res.fit(s21_kid, params=pars, f=freq_kid)
+                    # # Plot them
+                    # subplot(121)
+                    # plot(fit_s21.real, fit_s21.imag, 'b')
+                    # plot(guess_s21.real, guess_s21.imag, 'r')
+                    # plot(s21_kid.real, s21_kid.imag, 'k')
+                    # plot(x_center, y_center, 'ko')
+                    # plot(x_guess, y_guess, 'ro')
+                    # subplot(122)
+                    # plot(np.abs(fit_s21), 'b')
+                    # plot(np.abs(guess_s21), 'r')
 
-                # Evaluate the results
-                fit_s21 = model_res.eval(params=result.params, f=freq_kid)
+                    # Extract results
+                    kid_params[kid] = {}
+                    kid_params[kid]['params'] = {}
+                    kid_params[kid]['params']['A'] = result.values[prefix+'A']
 
-                kid_params[kid] = {}
-                kid_params[kid]['s21_fit'] = fit_s21
-                kid_params[kid]['params'] = {}
-                kid_params[kid]['params']['A'] = result.values[prefix+'A']
+                    kid_params[kid]['params']['f0'] = result.values[prefix+'f0']
+                    kid_params[kid]['params']['alpha'] = result.values[prefix+'alpha']
+                    kid_params[kid]['params']['Qr'] = result.values[prefix+'Qr']
+                    kid_params[kid]['params']['Qc_real'] = result.values[prefix+'Qc_real']
+                    kid_params[kid]['params']['Qc_imag'] = result.values[prefix+'Qc_imag']
 
-                kid_params[kid]['params']['f0'] = result.values[prefix+'f0']
-                kid_params[kid]['params']['alpha'] = result.values[prefix+'alpha']
-                kid_params[kid]['params']['Qr'] = result.values[prefix+'Qr']
-                kid_params[kid]['params']['Qc_real'] = result.values[prefix+'Qc_real']
-                kid_params[kid]['params']['Qc_imag'] = result.values[prefix+'Qc_imag']
+                    # Extract error
+                    kid_params[kid]['error'] = {}
+                    kid_params[kid]['error']['A'] = result.params[prefix+'A'].stderr
 
-                if method == 'nonlinear':
-                    kid_params[kid]['params']['a'] = result.values[prefix+'a']
-
-                if verbose:
-                    msg("A = {:.2f}".format(kid_params[kid]['params']['A']), 'ok')
-                    msg("f0 = {:.2f} Hz".format(kid_params[kid]['params']['f0']), 'ok')
-                    msg("alpha = {:.2f}°".format(kid_params[kid]['params']['alpha']*180/_np.pi), 'ok')
-                    msg("Qr = {:.0f}".format(kid_params[kid]['params']['Qr']), 'ok')
-                    msg("Qc = {:.0f} + j{:.0f}".format(kid_params[kid]['params']['Qc_real'], kid_params[kid]['params']['Qc_imag']), 'ok')
+                    kid_params[kid]['error']['f0'] = result.params[prefix+'f0'].stderr
+                    kid_params[kid]['error']['alpha'] = result.params[prefix+'alpha'].stderr
+                    kid_params[kid]['error']['Qr'] = result.params[prefix+'Qr'].stderr
+                    kid_params[kid]['error']['Qc_real'] = result.params[prefix+'Qc_real'].stderr
+                    kid_params[kid]['error']['Qc_imag'] = result.params[prefix+'Qc_imag'].stderr
 
                     if method == 'nonlinear':
-                        msg("a = {:.3f}".format(kid_params[kid]['params']['a']), 'ok')
+                        kid_params[kid]['params']['a'] = result.values[prefix+'a']
+                        kid_params[kid]['error']['a'] = result.params[prefix+'a'].stderr
 
-            else:   
+                    if verbose:
+                        msg("A = {:.2f}".format(kid_params[kid]['params']['A']), 'ok')
+                        msg("f0 = {:.2f} Hz".format(kid_params[kid]['params']['f0']), 'ok')
+                        msg("alpha = {:.2f}°".format(kid_params[kid]['params']['alpha']*180/_np.pi), 'ok')
+                        msg("Qr = {:.0f}".format(kid_params[kid]['params']['Qr']), 'ok')
+                        msg("Qc = {:.0f} + {:.0f}j".format(kid_params[kid]['params']['Qc_real'], kid_params[kid]['params']['Qc_imag']), 'ok')
+
+                        if method == 'nonlinear':
+                            msg("a = {:.3f}".format(kid_params[kid]['params']['a']), 'ok')
+
+                except Exception as e:
+                    msg(str(e)+'\nResonator not fitted. It might be a noisy resonator...', 'warn')
+
+            else:
                 msg('There is not enough data to fit', 'fail')
 
         return kid_params
@@ -451,6 +474,39 @@ class TimeStreamObs(object):
         return kids_list
 
 
+    @timeout(2)
+    def _perform_fit(self, method, freq_kid, s21_kid, **kwargs):
+        """
+            Apply the resonator model to the data
+            Parameters
+            ----------
+            method : string
+                Method to implement
+            freq_kid : array
+                Frequency
+            s21_kid : array
+                S21 parameter
+            ----------
+        """
+
+        # Create the model
+        model_res = ResonatorModel(method)
+
+        f0_guess = int(len(s21_kid)/2)+1
+        pars = model_res.guess(freq_kid, s21_kid, f0_guess, **kwargs)
+
+        # Evaluating the guessing
+        guess_s21 = model_res.eval(params=pars, f=freq_kid)
+
+        # Getting the fit
+        result = model_res.fit(s21_kid, params=pars, f=freq_kid)
+
+        # Evaluate the results
+        fit_s21 = model_res.eval(params=result.params, f=freq_kid)
+
+        return result
+
+
     def _parse_keys(self, keys, metadata):
         """
             Parse keys.
@@ -467,7 +523,7 @@ class TimeStreamObs(object):
         """
 
         keys_array = keys.split('-')
-        
+
         keys_parsed = []
         for key in keys_array:
             # Get keys
@@ -500,7 +556,7 @@ class TimeStreamObs(object):
         for field in raw_fields:
 
             filter_field = field
-            
+
             # Check if the field has a KID number
             if b'K' in field:
                 k_idx = field.index(b'K')
@@ -574,7 +630,7 @@ class TimeStreamObs(object):
         """
 
         kids_avail = self._validate_kids(kids)
-        
+
         # Get sweep data
         s21 = self.sweep(keys='f-s21', kids=kids)
         # Get IQ data
@@ -601,10 +657,10 @@ class TimeStreamObs(object):
 
             # First get the speed magnitude
             speed_mag = didf[f0]**2 + dqdf[f0]**2
-        
+
             # Calculate the df
             df = (((I_sweep[f0]-I)*didf[f0]) + ((Q_sweep[f0]-Q)*dqdf[f0])) / speed_mag
-        
+
             dfs[kid] = df/fs[f0]
 
         return dfs
@@ -655,7 +711,7 @@ class TimeStreamObs(object):
         """
 
         # As time stream metadata is empty
-        meta = b'' 
+        meta = b''
         meta_str = 'time-stream'
 
         # Validate KIDs list

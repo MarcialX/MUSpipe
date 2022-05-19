@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------------------- #
 # Resonator Model
 # resonator_model.py
-# Fit resonator model using the LM library 
+# Fit resonator model using the LM library
 #
 # Marcial Becerril, @ 16 May 2022
 # Latest Revision: 16 May 2022, 12:44 GMT-6
@@ -90,13 +90,13 @@ def nonlinear_resonator(f, A, alpha, f0, Qr, Qc_real, Qc_imag, a):
         ----------
     """
 
-    # Creating the Qc complex value 
+    # Creating the Qc complex value
     Qc = Qc_real + 1j*Qc_imag
 
     # Fractional frequency shift of non-linear resonator
     y0s = Qr*(f - f0)/f0
     y = np.zeros_like(y0s)
-    
+
     for i, y0 in enumerate(y0s):
         coeffs = [4.0, -4.0*y0, 1.0, -(y0+a)]
         y_roots = np.roots(coeffs)
